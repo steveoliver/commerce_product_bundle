@@ -11,7 +11,7 @@ use Drupal\Core\Entity\ContentEntityInterface;
  * Defines the bundle item entity.
  *
  * @ContentEntityType(
- *   id = "static_bundle_item",
+ *   id = "commerce_product_static_bundle_item",
  *   label = @Translation("static bundle item"),
  *   base_table = "commerce_product_bundle_static_item",
  *   entity_keys = {
@@ -23,10 +23,13 @@ use Drupal\Core\Entity\ContentEntityInterface;
 
 class StaticBundleItem extends ContentEntityBase implements ContentEntityInterface, BundleItemInterface {
 
+  /** @var \Drupal\commerce_product_bundle_static\StaticBundle $entity */
   protected $entity;
 
+  /** @var integer $qty */
   protected $qty;
 
+  /** @var \Drupal\commerce_price\Price $price */
   protected $unitPrice;
 
   public function __construct(PurchasableEntityInterface $entity, int $qty, Price $unit_price) {

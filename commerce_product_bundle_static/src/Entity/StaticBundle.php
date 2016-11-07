@@ -68,8 +68,32 @@ use Drupal\Core\Field\BaseFieldDefinition;
  * )
  */
 
-class StaticBundle extends ContentEntityBase implements ContentEntityInterface {
+class StaticBundle extends ContentEntityBase implements ContentEntityInterface, StaticBundleInterface {
   //PurchasableEntityInterface
+
+  /** @var \Drupal\commerce_product_bundle\Entity\BundleItemInterface[] $items */
+  protected $items = [];
+
+  /** @var array $configuration */
+  protected $configuration;
+
+  /** @var \Drupal\commerce_price\Resolver\PriceResolverInterface $resolver */
+  protected $priceResolver;
+
+  /** @var \Drupal\commerce\AvailabilityManagerInterface $availabilityManager */
+  protected $availabilityManager;
+
+  /** @var \Drupal\commerce_price\Price $basePrice */
+  protected $basePrice;
+
+  public function __construct($items, $price_resolver, $availability_manager, $configuration) {
+    $this->items = [];
+    $this->priceResolver = $price_resolver;
+    $this->availabilityManager = $availability_manager;
+    $this->configuration = $configuration;
+    $this->basePrice = new Price($configuration['base_price']);
+  }
+
   /**
    * {@inheritdoc}
    */
@@ -77,9 +101,9 @@ class StaticBundle extends ContentEntityBase implements ContentEntityInterface {
     $fields = parent::baseFieldDefinitions($entity_type);
 
     $fields['product_bundle_item_id'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('Product'))
-      ->setDescription(t('The included product variation.'))
-      ->setSetting('target_type', 'commerce_product_bundle_item')
+      ->setLabel(t('Products'))
+      ->setDescription(t('The product variation and quantity to include.'))
+      ->setSetting('target_type', 'commerce_product_static_bundle_item')
       ->setCardinality(BaseFieldDefinition::CARDINALITY_UNLIMITED)
       ->setDisplayConfigurable('view', TRUE);
 
@@ -100,4 +124,43 @@ class StaticBundle extends ContentEntityBase implements ContentEntityInterface {
       ->setDisplayConfigurable('form', TRUE)
       ->setDisplayConfigurable('view', TRUE);
   }
+
+  public function getShippingOverride() {
+    return $this->configuration['override_shipping'];
+  }
+
+  public function getPricingOverride() {
+    return $this->configuration['override_pricing'];
+  }
+
+  public function getBasePrice() {
+    return $this->basePrice;
+  }
+
+  public function getTotalPrice() {
+    if ($this->getPricingOverride()) {
+      // Calculate the overridden price.
+      $price = $this->getBasePrice();
+      foreach ($this->items as $item) {
+        $quantity = $item->getQuantity();
+        $unit_price = $item->getUnitPrice();
+        $item_price = $unit_price->multiply($quantity);
+        $price->add($item_price);
+      }
+      return $price;
+    }
+    else {
+      // Compute sum of all purchasable entities' resolved prices
+      $price = new \Price();
+      foreach ($this->items as $item) {
+        $entity = $item->getEntity();
+        $quantity = $item->getQuantity();
+        $unit_price = $this->priceResolver($entity);
+        $item_price = $unit_price->multiply($quantity);
+        $price->add($item_price);
+      }
+      return $price;
+    }
+  }
+
 }
