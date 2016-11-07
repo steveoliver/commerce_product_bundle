@@ -11,7 +11,7 @@ use Drupal\Core\Entity\ContentEntityInterface;
  * Defines the bundle item entity.
  *
  * @ContentEntityType(
- *   id = "commerce_product_static_bundle_item",
+ *   id = "commerce_product_bundle_static_item",
  *   label = @Translation("static bundle item"),
  *   base_table = "commerce_product_bundle_static_item",
  *   entity_keys = {
@@ -50,24 +50,23 @@ class StaticBundleItem extends ContentEntityBase implements ContentEntityInterfa
   }
 
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
-    $fields['product_id'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('Product Variation'))
-      ->setDescription(t('The included product variation.'))
+    $fields['entity_id'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Purchasable Entity'))
+      ->setDescription(t('The included purchasable entity.'))
       ->setSetting('target_type', 'commerce_product_variation')
       ->setDisplayConfigurable('view', TRUE);
 
-    $fields['product_qty'] = BaseFieldDefinition::create('integer')
+    $fields['qty'] = BaseFieldDefinition::create('integer')
       ->setLabel(t('Quantity'))
       ->setDescription(t('The quantity of this product variation included in bundle.'))
       ->setDisplayConfigurable('view', TRUE)
-      ->addConstraint('value', ['Range' => ['min' => 0, 'max' => 10]])
       ->setSetting('unsigned', TRUE);
 
     // The price is not required because it's not guaranteed to be used
     // for storage (there might be a price per currency, role, country, etc).
-    $fields['price'] = BaseFieldDefinition::create('commerce_price')
-      ->setLabel(t('Price'))
-      ->setDescription(t('The variation price'))
+    $fields['unit_price'] = BaseFieldDefinition::create('commerce_price')
+      ->setLabel(t('Unit Price'))
+      ->setDescription(t('The price of each item.'))
       ->setDisplayOptions('view', [
         'label' => 'above',
         'type' => 'commerce_price_default',

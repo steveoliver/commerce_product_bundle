@@ -21,7 +21,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *     plural = "@count static product bundles",
  *   ),
  *   handlers = {
- *     "event" = "Drupal\commerce_product\Event\ProductEvent",
+ *     "event" = "Drupal\commerce_product_bundle_static\Event\BundleEvent",
  *     "storage" = "Drupal\commerce\CommerceContentEntityStorage",
  *     "access" = "\Drupal\commerce\EntityAccessControlHandler",
  *     "permission_provider" = "\Drupal\commerce\EntityPermissionProvider",
@@ -29,25 +29,24 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *     "list_builder" = "Drupal\commerce_product\ProductListBuilder",
  *     "views_data" = "Drupal\views\EntityViewsData",
  *     "form" = {
- *       "default" = "Drupal\commerce_product\Form\ProductForm",
- *       "add" = "Drupal\commerce_product\Form\ProductForm",
- *       "edit" = "Drupal\commerce_product\Form\ProductForm",
+ *       "default" = "Drupal\commerce_product_bundle_static\Form\ProductForm",
+ *       "add" = "Drupal\commerce_product_bundle_static\Form\ProductForm",
+ *       "edit" = "Drupal\commerce_product_bundle_static\Form\ProductForm",
  *       "delete" = "Drupal\Core\Entity\ContentEntityDeleteForm"
  *     },
  *     "route_provider" = {
  *       "default" = "Drupal\Core\Entity\Routing\AdminHtmlRouteProvider",
  *       "delete-multiple" = "Drupal\entity\Routing\DeleteMultipleRouteProvider",
  *     },
- *     "translation" = "Drupal\commerce_product\ProductTranslationHandler"
+ *     "translation" = "Drupal\commerce_product_bundle_static\ProductTranslationHandler"
  *   },
  *   admin_permission = "administer commerce_product_bundle_static",
- *   permission_granularity = "bundle",
  *   fieldable = TRUE,
  *   translatable = TRUE,
  *   base_table = "commerce_product_bundle_static",
  *   data_table = "commerce_product_bundle_static_data",
  *   entity_keys = {
- *     "id" = "product_bundle_id",
+ *     "id" = "bundle_id",
  *     "bundle" = "type",
  *     "label" = "title",
  *     "langcode" = "langcode",
@@ -55,16 +54,16 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *     "status" = "status",
  *   },
  *   links = {
- *     "canonical" = "/product/{commerce_product}",
+ *     "canonical" = "/product-bundle/{bundle}",
  *     "add-page" = "/product/add",
- *     "add-form" = "/product/add/{commerce_product_type}",
- *     "edit-form" = "/product/{commerce_product}/edit",
- *     "delete-form" = "/product/{commerce_product}/delete",
- *     "delete-multiple-form" = "/admin/commerce/products/delete",
- *     "collection" = "/admin/commerce/products"
+ *     "add-form" = "/product-bundle/add/{bundle}",
+ *     "edit-form" = "/product-bundle/{bundle}/edit",
+ *     "delete-form" = "/product-bundle/{bundle}/delete",
+ *     "delete-multiple-form" = "/admin/commerce/product-bundles/delete",
+ *     "collection" = "/admin/commerce/product-bundles"
  *   },
- *   bundle_entity_type = "commerce_product_type",
- *   field_ui_base_route = "entity.commerce_product_type.edit_form",
+ *   bundle_entity_type = "commerce_product_bundle_static",
+ *   field_ui_base_route = "entity.commerce_product_bundle_static.edit_form",
  * )
  */
 
@@ -100,18 +99,18 @@ class StaticBundle extends ContentEntityBase implements ContentEntityInterface, 
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
     $fields = parent::baseFieldDefinitions($entity_type);
 
-    $fields['product_bundle_item_id'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('Products'))
-      ->setDescription(t('The product variation and quantity to include.'))
+    $fields['bundle_item_id'] = BaseFieldDefinition::create('entity_reference')
+      ->setLabel(t('Bundle Item'))
+      ->setDescription(t('The bundle item (product variation and quantity) to include.'))
       ->setSetting('target_type', 'commerce_product_static_bundle_item')
       ->setCardinality(BaseFieldDefinition::CARDINALITY_UNLIMITED)
       ->setDisplayConfigurable('view', TRUE);
 
     // The price is not required because it's not guaranteed to be used
     // for storage (there might be a price per currency, role, country, etc).
-    $fields['price'] = BaseFieldDefinition::create('commerce_price')
-      ->setLabel(t('Price'))
-      ->setDescription(t('The variation price'))
+    $fields['base_price'] = BaseFieldDefinition::create('commerce_price')
+      ->setLabel(t('Base Price'))
+      ->setDescription(t('The bundle base price'))
       ->setDisplayOptions('view', [
         'label' => 'above',
         'type' => 'commerce_price_default',
