@@ -1,0 +1,7 @@
+name: Commerce Product Bundle Static
+type: module
+description: 'Extends Drupal Commerce Bundle with a static bundle functionality.'
+core: 8.x
+package: Commerce Contrib
+dependencies:
+  - commerce_product_bundle

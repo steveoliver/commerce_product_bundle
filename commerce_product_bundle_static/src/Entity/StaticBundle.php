@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_product\Entity\ProductBundle;
+namespace Drupal\commerce_product_bundle_static\Entity\StaticBundle;
 
 use Drupal\commerce\PurchasableEntityInterface;
 use Drupal\commerce_product\Entity\Product;
@@ -12,13 +12,13 @@ use Drupal\Core\Field\BaseFieldDefinition;
  * Defines the product entity class.
  *
  * @ContentEntityType(
- *   id = "commerce_product_bundle",
- *   label = @Translation("Product Bundle"),
- *   label_singular = @Translation("product bundle"),
- *   label_plural = @Translation("product bundles"),
+ *   id = "commerce_product_bundle_static",
+ *   label = @Translation("Static Product Bundle"),
+ *   label_singular = @Translation("static product bundle"),
+ *   label_plural = @Translation("static product bundles"),
  *   label_count = @PluralTranslation(
- *     singular = "@count product bundle",
- *     plural = "@count product bundles",
+ *     singular = "@count static product bundle",
+ *     plural = "@count static product bundles",
  *   ),
  *   handlers = {
  *     "event" = "Drupal\commerce_product\Event\ProductEvent",
@@ -40,12 +40,12 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *     },
  *     "translation" = "Drupal\commerce_product\ProductTranslationHandler"
  *   },
- *   admin_permission = "administer commerce_product_bundle",
+ *   admin_permission = "administer commerce_product_bundle_static",
  *   permission_granularity = "bundle",
  *   fieldable = TRUE,
  *   translatable = TRUE,
- *   base_table = "commerce_product_bundle",
- *   data_table = "commerce_product_bundle_data",
+ *   base_table = "commerce_product_bundle_static",
+ *   data_table = "commerce_product_bundle_static_data",
  *   entity_keys = {
  *     "id" = "product_bundle_id",
  *     "bundle" = "type",
@@ -68,7 +68,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  * )
  */
 
-class ProductBundle extends ContentEntityBase implements ContentEntityInterface {
+class StaticBundle extends ContentEntityBase implements ContentEntityInterface {
   //PurchasableEntityInterface
   /**
    * {@inheritdoc}

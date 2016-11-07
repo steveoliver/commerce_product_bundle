@@ -1,6 +1,6 @@
 <?php
 
-namespace Drupal\commerce_product\Entity\ProductBundleItem;
+namespace Drupal\commerce_product_bundle_static\Entity\StaticBundleItem;
 
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Field\BaseFieldDefinition;
@@ -11,9 +11,9 @@ use Drupal\Core\Entity\ContentEntityInterface;
  * Defines the bundle item entity.
  *
  * @ContentEntityType(
- *   id = "bundle_item",
- *   label = @Translation("bundle item"),
- *   base_table = "commerce_product_bundle_item",
+ *   id = "static_bundle_item",
+ *   label = @Translation("static bundle item"),
+ *   base_table = "commerce_product_bundle_static_item",
  *   entity_keys = {
  *     "id" = "id",
  *     "uuid" = "uuid",
@@ -21,7 +21,30 @@ use Drupal\Core\Entity\ContentEntityInterface;
  * )
  */
 
-class ProductBundleItem extends ContentEntityBase implements ContentEntityInterface {
+class StaticBundleItem extends ContentEntityBase implements ContentEntityInterface, BundleItemInterface {
+
+  protected $entity;
+
+  protected $qty;
+
+  protected $unitPrice;
+
+  public function __construct(PurchasableEntityInterface $entity, int $qty, Price $unit_price) {
+    $this->entity = $entity;
+    $this->qty = $qty;
+    $this->unitPrice = $unit_price;
+  }
+
+  public function getEntity() {
+    return $this->entity;
+  }
+
+  public function getQuantity() {
+    return $this->qty;
+  }
+  public function getUnitPrice() {
+    return $this->unitPrice;
+  }
 
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
     $fields['product_id'] = BaseFieldDefinition::create('entity_reference')
