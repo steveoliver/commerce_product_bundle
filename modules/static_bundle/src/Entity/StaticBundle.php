@@ -1,19 +1,18 @@
 <?php
 
-namespace Drupal\commerce_product_bundle_static\Entity\StaticBundle;
+namespace Drupal\commerce_product_bundle_static\Entity;
 
-use Drupal\commerce\PurchasableEntityInterface;
-use Drupal\commerce_product\Entity\Product;
-use Drupal\Core\Entity\ContentEntityBase;
+use Drupal\commerce_price\Price;
+// use Drupal\commerce_product_bundle\Entity\StaticBundleInterface;
+use Drupal\commerce_product_bundle\Entity\BundleBase;
 use Drupal\Core\Entity\EntityTypeInterface;
-use Drupal\Core\Field\BaseFieldDefinition;
 
 /**
- * Defines the product entity class.
+ * Defines the static bundle entity class.
  *
  * @ContentEntityType(
  *   id = "commerce_product_bundle_static",
- *   label = @Translation("Static Product Bundle"),
+ *   label = @Translation("Static product bundle"),
  *   label_singular = @Translation("static product bundle"),
  *   label_plural = @Translation("static product bundles"),
  *   label_count = @PluralTranslation(
@@ -23,7 +22,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *   handlers = {
  *     "event" = "Drupal\commerce_product_bundle_static\Event\BundleEvent",
  *     "storage" = "Drupal\commerce\CommerceContentEntityStorage",
- *     "access" = "\Drupal\commerce\EntityAccessControlHandler",
+ *     "access" = "Drupal\commerce\EntityAccessControlHandler",
  *     "permission_provider" = "\Drupal\commerce\EntityPermissionProvider",
  *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
  *     "list_builder" = "Drupal\commerce_product\ProductListBuilder",
@@ -46,8 +45,7 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *   base_table = "commerce_product_bundle_static",
  *   data_table = "commerce_product_bundle_static_data",
  *   entity_keys = {
- *     "id" = "bundle_id",
- *     "bundle" = "type",
+ *     "id" = "id",
  *     "label" = "title",
  *     "langcode" = "langcode",
  *     "uuid" = "uuid",
@@ -55,26 +53,18 @@ use Drupal\Core\Field\BaseFieldDefinition;
  *   },
  *   links = {
  *     "canonical" = "/product-bundle/{bundle}",
- *     "add-page" = "/product/add",
+ *     "add-page" = "/product-bundle/add",
  *     "add-form" = "/product-bundle/add/{bundle}",
  *     "edit-form" = "/product-bundle/{bundle}/edit",
  *     "delete-form" = "/product-bundle/{bundle}/delete",
  *     "delete-multiple-form" = "/admin/commerce/product-bundles/delete",
  *     "collection" = "/admin/commerce/product-bundles"
  *   },
- *   bundle_entity_type = "commerce_product_bundle_static",
  *   field_ui_base_route = "entity.commerce_product_bundle_static.edit_form",
  * )
  */
 
-class StaticBundle extends ContentEntityBase implements ContentEntityInterface, StaticBundleInterface {
-  //PurchasableEntityInterface
-
-  /** @var \Drupal\commerce_product_bundle\Entity\BundleItemInterface[] $items */
-  protected $items = [];
-
-  /** @var array $configuration */
-  protected $configuration;
+class StaticBundle extends BundleBase {
 
   /** @var \Drupal\commerce_price\Resolver\PriceResolverInterface $resolver */
   protected $priceResolver;
@@ -82,15 +72,68 @@ class StaticBundle extends ContentEntityBase implements ContentEntityInterface, 
   /** @var \Drupal\commerce\AvailabilityManagerInterface $availabilityManager */
   protected $availabilityManager;
 
-  /** @var \Drupal\commerce_price\Price $basePrice */
-  protected $basePrice;
+  /**
+   * {@inheritdoc}
+   */
+  public function getStores() {
+    $stores = $this->get('stores')->referencedEntities();
+    return $this->ensureTranslations($stores);
+  }
 
-  public function __construct($items, $price_resolver, $availability_manager, $configuration) {
+  /**
+   * {@inheritdoc}
+   */
+  public function getOrderItemTypeId() {
+    return 'commerce_product_bundle_static';
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getOrderItemTitle() {
+    return $this->getTitle();
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function getPrice() {
+
+    // @todo Implement all pricing possibilities.
+
+    $price = $this->getBasePrice() ?: new Price('0.00', 'USD');
+
+    foreach ($this->getItems() as $item) {
+      $quantity = $item->getQuantity();
+      $unit_price = $item->getUnitPrice();
+      $item_price = $unit_price->multiply($quantity);
+      $price->add($item_price);
+    }
+
+    return $price;
+
+//    if () {
+//      // Compute sum of all purchasable entities' resolved prices
+//      $price = new \Price();
+//      foreach ($this->items as $item) {
+//        $entity = $item->getEntity();
+//        $quantity = $item->getQuantity();
+//        $unit_price = $this->priceResolver($entity);
+//        $item_price = $unit_price->multiply($quantity);
+//        $price->add($item_price);
+//      }
+//      return $price;
+//    }
+
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function __construct($items, $price_resolver, $availability_manager) {
     $this->items = [];
     $this->priceResolver = $price_resolver;
     $this->availabilityManager = $availability_manager;
-    $this->configuration = $configuration;
-    $this->basePrice = new Price($configuration['base_price']);
   }
 
   /**
@@ -99,67 +142,9 @@ class StaticBundle extends ContentEntityBase implements ContentEntityInterface, 
   public static function baseFieldDefinitions(EntityTypeInterface $entity_type) {
     $fields = parent::baseFieldDefinitions($entity_type);
 
-    $fields['bundle_item_id'] = BaseFieldDefinition::create('entity_reference')
-      ->setLabel(t('Bundle Item'))
-      ->setDescription(t('The bundle item (product variation and quantity) to include.'))
-      ->setSetting('target_type', 'commerce_product_static_bundle_item')
-      ->setCardinality(BaseFieldDefinition::CARDINALITY_UNLIMITED)
-      ->setDisplayConfigurable('view', TRUE);
+    $fields['items']->setSetting('target_type', 'commerce_product_bundle_i_static');
 
-    // The price is not required because it's not guaranteed to be used
-    // for storage (there might be a price per currency, role, country, etc).
-    $fields['base_price'] = BaseFieldDefinition::create('commerce_price')
-      ->setLabel(t('Base Price'))
-      ->setDescription(t('The bundle base price'))
-      ->setDisplayOptions('view', [
-        'label' => 'above',
-        'type' => 'commerce_price_default',
-        'weight' => 0,
-      ])
-      ->setDisplayOptions('form', [
-        'type' => 'commerce_price_default',
-        'weight' => 0,
-      ])
-      ->setDisplayConfigurable('form', TRUE)
-      ->setDisplayConfigurable('view', TRUE);
-  }
-
-  public function getShippingOverride() {
-    return $this->configuration['override_shipping'];
-  }
-
-  public function getPricingOverride() {
-    return $this->configuration['override_pricing'];
-  }
-
-  public function getBasePrice() {
-    return $this->basePrice;
-  }
-
-  public function getTotalPrice() {
-    if ($this->getPricingOverride()) {
-      // Calculate the overridden price.
-      $price = $this->getBasePrice();
-      foreach ($this->items as $item) {
-        $quantity = $item->getQuantity();
-        $unit_price = $item->getUnitPrice();
-        $item_price = $unit_price->multiply($quantity);
-        $price->add($item_price);
-      }
-      return $price;
-    }
-    else {
-      // Compute sum of all purchasable entities' resolved prices
-      $price = new \Price();
-      foreach ($this->items as $item) {
-        $entity = $item->getEntity();
-        $quantity = $item->getQuantity();
-        $unit_price = $this->priceResolver($entity);
-        $item_price = $unit_price->multiply($quantity);
-        $price->add($item_price);
-      }
-      return $price;
-    }
+    return $fields;
   }
 
 }
