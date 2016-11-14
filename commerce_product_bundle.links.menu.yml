@@ -1,0 +1,5 @@
+entity.commerce_product_bundle.collection:
+  title: 'Product bundles'
+  route_name: 'entity.commerce_product_bundle.collection'
+  parent: 'commerce.admin_commerce'
+  description: 'Manage your product bundles.'

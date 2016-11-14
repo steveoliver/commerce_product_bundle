@@ -1,0 +1,4 @@
+'administer commerce_product_bundle':
+  title: 'Administer product bundles'
+  description: 'Maintain the types of products available and the fields that are associated with those types.'
+  'restrict access': TRUE

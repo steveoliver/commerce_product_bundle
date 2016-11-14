@@ -19,18 +19,19 @@ use Drupal\Core\Entity\EntityTypeInterface;
  *     singular = "@count static product bundle",
  *     plural = "@count static product bundles",
  *   ),
+ *   bundle_label = @Translation("Static product bundle type"),
  *   handlers = {
  *     "event" = "Drupal\commerce_product_bundle_static\Event\BundleEvent",
  *     "storage" = "Drupal\commerce\CommerceContentEntityStorage",
  *     "access" = "Drupal\commerce\EntityAccessControlHandler",
- *     "permission_provider" = "\Drupal\commerce\EntityPermissionProvider",
+ *     "permission_provider" = "Drupal\commerce\EntityPermissionProvider",
  *     "view_builder" = "Drupal\Core\Entity\EntityViewBuilder",
- *     "list_builder" = "Drupal\commerce_product\ProductListBuilder",
+ *     "list_builder" = "Drupal\commerce_product_bundle_static\StaticBundleListBuilder",
  *     "views_data" = "Drupal\views\EntityViewsData",
  *     "form" = {
- *       "default" = "Drupal\commerce_product_bundle_static\Form\ProductForm",
- *       "add" = "Drupal\commerce_product_bundle_static\Form\ProductForm",
- *       "edit" = "Drupal\commerce_product_bundle_static\Form\ProductForm",
+ *       "default" = "Drupal\commerce_product_bundle_static\Form\StaticBundleForm",
+ *       "add" = "Drupal\commerce_product_bundle_static\Form\StaticBundleForm",
+ *       "edit" = "Drupal\commerce_product_bundle_static\Form\StaticBundleForm",
  *       "delete" = "Drupal\Core\Entity\ContentEntityDeleteForm"
  *     },
  *     "route_provider" = {
@@ -46,6 +47,7 @@ use Drupal\Core\Entity\EntityTypeInterface;
  *   data_table = "commerce_product_bundle_static_data",
  *   entity_keys = {
  *     "id" = "id",
+ *     "bundle" = "type",
  *     "label" = "title",
  *     "langcode" = "langcode",
  *     "uuid" = "uuid",
@@ -53,14 +55,15 @@ use Drupal\Core\Entity\EntityTypeInterface;
  *   },
  *   links = {
  *     "canonical" = "/product-bundle/{bundle}",
- *     "add-page" = "/product-bundle/add",
- *     "add-form" = "/product-bundle/add/{bundle}",
+ *     "add-page" = "/product-bundle/add/static",
+ *     "add-form" = "/product-bundle/add/static",
  *     "edit-form" = "/product-bundle/{bundle}/edit",
  *     "delete-form" = "/product-bundle/{bundle}/delete",
  *     "delete-multiple-form" = "/admin/commerce/product-bundles/delete",
  *     "collection" = "/admin/commerce/product-bundles"
  *   },
- *   field_ui_base_route = "entity.commerce_product_bundle_static.edit_form",
+ *   bundle_entity_type = "static",
+ *   field_ui_base_route = "entity.commerce_product_bundle.edit_form",
  * )
  */
 
