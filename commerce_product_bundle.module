@@ -22,3 +22,163 @@ function commerce_product_bundle_help($route_name, RouteMatchInterface $route_ma
     default:
   }
 }
+
+/**
+ * Adds the default stores field to a product bundle.
+ *
+ * A product bundle can belong to multiple stores.
+ * Store id can't be a base field because the Views integration is broken.
+ * Instead, it is created as a configurable field for each order type.
+ *
+ * @param \Drupal\commerce_product_bundle\Entity\BundleTypeInterface $bundle_type
+ *   The product bundle type.
+ */
+function commerce_product_bundle_add_stores_field($bundle_type) {
+  $field_storage = FieldStorageConfig::loadByName('commerce_product_bundle', 'stores');
+  $field = FieldConfig::loadByName('commerce_product_bundle', $bundle_type->id(), 'stores');
+  if (empty($field_storage)) {
+    $field_storage = FieldStorageConfig::create([
+      'field_name' => 'stores',
+      'entity_type' => 'commerce_product_bundle',
+      'type' => 'entity_reference',
+      'cardinality' => FieldStorageConfig::CARDINALITY_UNLIMITED,
+      'settings' => [
+        'target_type' => 'commerce_store',
+      ],
+      'locked' => TRUE,
+      'translatable' => FALSE,
+    ]);
+    $field_storage->save();
+  }
+  if (empty($field)) {
+    $field = FieldConfig::create([
+      'field_storage' => $field_storage,
+      'bundle' => $bundle_type->id(),
+      'label' => 'Stores',
+      'required' => TRUE,
+      'settings' => [
+        'handler' => 'default',
+        'handler_settings' => [],
+      ],
+      'translatable' => FALSE,
+    ]);
+    $field->save();
+
+    $form_display = commerce_get_entity_display('commerce_product_bundle', $bundle_type->id(), 'form');
+    $form_display->setComponent('stores', [
+      'type' => 'commerce_entity_select',
+      'weight' => -10,
+    ]);
+    $form_display->save();
+  }
+
+  /**
+   * Adds the default body field to a product bundle type.
+   *
+   * @param \Drupal\commerce_product_bundle\Entity\BundleTypeInterface $bundle_type
+   *   The product type.
+   * @param string $label
+   *   (optional) The label for the body instance. Defaults to 'Body'.
+   */
+  function commerce_product_bundle_add_body_field($bundle_type, $label = 'Body') {
+    $field_storage = FieldStorageConfig::loadByName('commerce_product_bundle', 'body');
+    $field = FieldConfig::loadByName('commerce_product_bundle', $bundle_type->id(), 'body');
+    if (empty($field_storage)) {
+      $field_storage = FieldStorageConfig::create([
+        'field_name' => 'body',
+        'entity_type' => 'commerce_product_bundle',
+        'type' => 'text_with_summary',
+      ]);
+      $field_storage->save();
+    }
+    if (empty($field)) {
+      $field = FieldConfig::create([
+        'field_storage' => $field_storage,
+        'bundle' => $bundle_type->id(),
+        'label' => $label,
+        'settings' => ['display_summary' => FALSE],
+      ]);
+      $field->save();
+
+      $view_display = commerce_get_entity_display('commerce_product_bundle', $bundle_type->id(), 'view');
+      $view_display->setComponent('body', [
+        'label' => 'hidden',
+        'type' => 'text_default',
+      ]);
+      $view_display->save();
+
+      $form_display = commerce_get_entity_display('commerce_product_bundle', $bundle_type->id(), 'form');
+      $form_display->setComponent('body', [
+        'type' => 'text_textarea_with_summary',
+        'weight' => 1,
+      ]);
+      $form_display->save();
+    }
+  }
+
+  /**
+   * Adds the default variations field to a product bundle type.
+   *
+   * Variations can't be a base field because the Views integration is broken.
+   * Instead, it is created as a configurable field for each product bundle type.
+   *
+   * @param \Drupal\commerce_product_bundle\Entity\BundleTypeInterface $bundle_type
+   *   The product bundle type.
+   */
+  function commerce_product_bundle_add_items_field($bundle_type) {
+    $field_storage = FieldStorageConfig::loadByName('commerce_product_bundle', 'item');
+    $field = FieldConfig::loadByName('commerce_product_bundle', $bundle_type->id(), 'items');
+    if (empty($field_storage)) {
+      $field_storage = FieldStorageConfig::create([
+        'field_name' => 'items',
+        'entity_type' => 'commerce_product_bundle',
+        'type' => 'entity_reference',
+        'cardinality' => FieldStorageConfig::CARDINALITY_UNLIMITED,
+        'settings' => [
+          'target_type' => 'commerce_product_bundle_item',
+        ],
+        'locked' => TRUE,
+        'translatable' => FALSE,
+      ]);
+      $field_storage->save();
+    }
+    if (empty($field)) {
+      $field = FieldConfig::create([
+        'field_storage' => $field_storage,
+        'bundle' => $bundle_type->id(),
+        'label' => 'Items',
+        'required' => TRUE,
+        'settings' => [
+          'handler' => 'default',
+          'handler_settings' => [
+            'target_bundles' => [
+              'commerce_product_bundle_item' // $bundle_type->getVariationTypeId(),
+            ],
+          ],
+        ],
+        'translatable' => FALSE,
+      ]);
+      $field->save();
+
+      $view_display = commerce_get_entity_display('commerce_product_bundle', $bundle_type->id(), 'view');
+      $view_display->setComponent('items', [
+        'type' => 'commerce_add_to_cart',
+        'weight' => 10,
+      ]);
+      $view_display->save();
+
+      $form_display = commerce_get_entity_display('commerce_product_bundle', $bundle_type->id(), 'form');
+      $form_display->setComponent('items', [
+        'type' => 'inline_entity_form_complex',
+        'weight' => 10,
+        'settings' => [
+          'override_labels' => TRUE,
+          'label_singular' => 'item',
+          'label_plural' => 'items',
+        ],
+      ]);
+      $form_display->save();
+    }
+  }
+
+}

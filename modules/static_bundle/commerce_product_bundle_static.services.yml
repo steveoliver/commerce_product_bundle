@@ -1,0 +1,5 @@
+services:
+  commerce_product_bundle_static.order_tax_processor:
+    class: Drupal\commerce_product_bundle_static\OrderTaxProcessor
+    tags:
+      - { name: commerce_order.order_processor, priority: 200 }

@@ -1,0 +1,6 @@
+langcode: en
+status: true
+label: 'Static product bundle'
+id: product_bundle_static
+purchasableEntityType: commerce_product_bundle_static
+orderType: default

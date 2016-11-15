@@ -1,0 +1,7 @@
+entity.commerce_product_bundle.collection:
+  path: '/admin/commerce/product-bundles'
+  defaults:
+    _entity_list: 'commerce_product_bundle'
+    _title: 'Product bundles'
+  requirements:
+    _permission: 'administer commerce_product_bundle'
