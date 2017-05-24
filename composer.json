@@ -10,6 +10,5 @@
   },
   "require": {
     "drupal/commerce": "2.x-dev"
-  },
-  "minimum-stability": "dev"
+  }
 }
